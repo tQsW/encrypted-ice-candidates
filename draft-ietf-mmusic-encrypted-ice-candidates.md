@@ -1,7 +1,7 @@
 ---
-title: Encrypted ICE Candidates with Pre-Shared Key Cipher Suites
+title: Encrypting ICE Candidates to improve privacy and connectivity
 docname: draft-ietf-mmusic-encrypted-ice-candidates-latest
-abbrev: mdns-ice-candidates
+abbrev: encrypted-ice-candidates
 category: info
 
 ipr: trust200902
@@ -51,11 +51,16 @@ informative:
 
 --- abstract
 
-This document describes a way to share local IP addresses with other clients
-without compromising client privacy via pre-shared key cipher suites. A local IP
-address is encrypted and authenticated in the connection-address field of an ICE
-candidate, and is presented as a hostname with the ".encrypted" pseudo-top-level
-domain.
+WebRTC applications collect ICE candidates as part of the process of
+creating peer-to-peer connections.  To maximize the probability of a
+direct peer-to-peer connection, client private IP addresses can be
+included in this candidate collection, but this has privacy implications.
+This document describes a way to share local IP addresses with local peers 
+without compromising client privacy. During the ICE process, local IP
+addresses are encrypted and authenticated using a pre-shared key and 
+cipher suite before being put into ICE candidates as hostnames with an
+".encrypted" pseudo-top-level domain. Other peers who also have the PSK
+are able to decrypt these addresses and use them normally in ICE processing.
 
 --- middle
 
