@@ -33,22 +33,6 @@ normative:
   RFC6052
   RFC8445:
 informative:
-  ICESDP:
-    target: https://tools.ietf.org/html/draft-ietf-mmusic-ice-sip-sdp
-    title: Session Description Protocol (SDP) Offer/Answer procedures for
-           Interactive Connectivity Establishment (ICE)
-    author:
-      ins: M. Petit-Huguenin
-      ins: S. Nandakumar
-      ins: A. Keranen
-    date: 2018-04-01
-  IPHandling:
-    target: https://tools.ietf.org/html/draft-ietf-rtcweb-ip-handling
-    title:  WebRTC IP Address Handling Requirements
-    author:
-      ins: J. Uberti
-      ins: G. Shieh
-    date: 2018-04-18
   MdnsCandidate:
     target: https://tools.ietf.org/html/draft-ietf-rtcweb-mdns-ice-candidates
     title: Using Multicast DNS to protect privacy when exposing ICE candidates
@@ -87,7 +71,7 @@ peers in general to share local IPs. However, link-local mDNS messages often
 fail to traverse subnets, and this can lead to failure of mDNS name resolution,
 which further hinders direct peer-to-peer connections between clients.
 
-This document proposes an complementary solution in managed networks to share
+This document proposes a complementary solution in managed networks to share
 local IP addresses without compromising the client privacy. Specifically,
 addresses are encrypted with pre-shared key (PSK) cipher suites, and encoded as
 hostnames with the ".encrypted" pseudo-top-level-domain (pseudo-TLD).
@@ -114,7 +98,7 @@ This section uses the concept of ICE agent as defined in {{RFC8445}}.
 Pre-Shared Key Cipher Suite {#ciphersuite}
 ------------------------------------------
 
-ICE agents that implement this proposal pre-share keys for ciphersuites
+ICE agents that implement this proposal pre-share keys for cipher suites
 based on symmetric-key algorithms. The mechanism of sharing such information
 is outside the scope of this document. The implementation MUST support the
 Advanced Encryption Standard (AES) algorithm and its operation in the CTR, CBC
@@ -131,15 +115,15 @@ initialization vector for CBC or GCM, respectively.
 
 Note the ICE password associated with an ICE agent has at least 128-bit
 randomness as defined by {{RFC8445}}. To reduce the overhead in the candidate
-encoding that will be detailed in the next section, the initialization paramter
+encoding that will be detailed in the next section, the initialization parameter
 MUST be chosen as the first 16 bytes or 12 bytes in the network order for the
 mode in use.
 
 ICE Candidate Gathering {#gathering}
 ------------------------------------
 
-This section outlines how a pre-shared key (PSK) cipher suite should be used by ICE
-agents to conceal local IP addresses.
+This section outlines how a PSK cipher suite should be used by ICE agents to
+conceal local IP addresses.
 
 ### Procedure
 
@@ -153,7 +137,7 @@ described below.
 
 2. Let *address* be the IP address of the candidate, and embed it as an IPv6
    address if it is an IPv4 address using the "Well-Known Prefix" as described
-   in RFC6095. Let *ciphersuite* be the pre-determined cipher suite and its
+   in {{RFC6095}}. Let *ciphersuite* be the pre-determined cipher suite and its
    initialization parameter, and *key* the PSK. Let
    *EncryptAndAuthenticate(plaintext, ciphersuite, key)* be an operation using
    the given cipher suite to encrypt a given plaintext with authentication, and
@@ -168,20 +152,18 @@ described below.
 
 ### Example
 
-The candidate attribute in the SDP messages to exchange the encrypted candiate
-following the abov procedure can be given by
+The candidate attribute in the SDP messages to exchange the encrypted candidate
+following the above procedure can be given by
 
-  candidate:1 1 udp 2122262783
-  8c9bd03bb7a5a76a5803eebc688f0388fa991acbdf116f6b72fd3a781174cd58.encrypted
-  56622 typ host
+  a=candidate:1 1 udp 2122262783
+    8c9bd03bb7a5a76a5803eebc688f0388fa991acbdf116f6b72fd3a781174cd58.encrypted
+    56622 typ host
 
 ICE Candidate Processing {#processing}
 -------------------------------------
 
 This section outlines how received ICE candidates with mDNS names are
 processed by ICE agents, and is relevant to all endpoints.
-
-### Procedure
 
 For any remote ICE candidate received by the ICE agent, the following procedure
 is used:
@@ -211,9 +193,9 @@ is used:
    or an FTD error is raised in step 3, discard the candidate, or proceed to
    step 6 if the ICE agent implements {{MdnsCandidate}}.
 
-6. Let *encrypted_address* be the same value defined in step 3, construct an mDNS
-   name given by *encrypted_address.local*, and proceed with setp 2 in Section
-   3.2.1 in {{MdnsCandidate}}.
+6. Let *encrypted_address* be the same value defined in step 3, and construct an
+   mDNS name given by *encrypted_address.local*, and proceed with step 2 in
+   Section 3.2.1 in {{MdnsCandidate}}.
 
 ICE agents can implement this procedure in any way as long as it produces
 equivalent results.
