@@ -58,32 +58,18 @@ informative:
       ins: J. Uberti
       ins: Q. Wang
     date: 2019-10-16
-  WebRTCSpec:
-    target: https://w3c.github.io/webrtc-pc/
-    title:  The WebRTC specification
+  Overview:
+    target: https://tools.ietf.org/html/draft-ietf-rtcweb-overview
+    title: "Overview: Real Time Protocols for Browser-based Applications"
     author:
-      ins: A. Bergkvist
-      ins: D. Burnett
-      ins: C. Jennings
-      ins: A. Narayanan
-      ins: B. Aboba
-      ins: T. Brandstetter
-      ins: J.I. Bruaroey
-  HTMLSpec:
-    target: https://html.spec.whatwg.org
-    title: HTML Living Standard
-  RTCWebSecurity:
-    target: https://tools.ietf.org/html/draft-ietf-rtcweb-security
-    title:  Security Considerations for WebRTC
-    author:
-      ins: E. Rescorla
-    date: 2018-01-22
+      ins: H. Alvestrand
+    date: 2017-11-12
 
 --- abstract
 
 This document describes a way to share local IP addresses with other clients
-while preserving client privacy via pre-shared cipher suites. A local IP address
-is encrypted and authenticated in the connection-address field of an ICE
+without compromising client privacy via pre-shared key cipher suites. A local IP
+address is encrypted and authenticated in the connection-address field of an ICE
 candidate, and is presented as a hostname with the ".encrypted" pseudo-top-level
 domain.
 
@@ -93,39 +79,25 @@ Introduction {#problems}
 ============
 
 The technique detailed in {{MdnsCandidate}} provides a method to share local IP
-address with other clients without exposing client private IP to applications.
-The mDNS based out-of-band signal of IP addresses is constrained by the
-link-local nature of the mDNS messages, and this can lead to failure of mDNS
-name resolution, which further hinders direct peer-to-peer connections between
-clients. With the possibility of application-controlled signaling servers,
+addresses with other clients without exposing client private IP to applications.
+With the possibility of application-controlled signaling servers,
 STUN/TURN servers, and even the remote peer implementation, the locality of the
-mDNS technique was considered as part of the source of trust between peers to
-share local IPs.
+out-of-band mDNS signaling can be considered as the source of trust between
+peers in general to share local IPs. However, link-local mDNS messages often
+fail to traverse subnets, and this can lead to failure of mDNS name resolution,
+which further hinders direct peer-to-peer connections between clients.
 
-to web applications maximizes the probability of successfully creating direct
-peer-to-peer connections between clients, but creates a significant surface for
-user fingerprinting. {{IPHandling}} recognizes this issue, but also admits that
-there is no current solution to this problem; implementations that choose to use
-Mode 3 to address the privacy concerns often suffer from failing or suboptimal
-connections in WebRTC applications. This is particularly an issue on unmanaged
-networks, typically homes or small offices, where NAT loopback may not be
-supported.
-
-This document proposes an overall solution to this problem by providing a
-mechanism for WebRTC implementations to register ephemeral mDNS {{RFC6762}}
-names for local private IP addresses, and then provide those names, rather than
-the IP addresses, in their ICE candidates. While this technique is intended
-to benefit WebRTC implementations in web browsers, by preventing collection
-of private IP addresses by arbitrary web pages, it can also be used by any
-endpoint that wants to avoid disclosing information about its local network
-to remote peers on other networks.
+This document proposes an complementary solution in managed networks to share
+local IP addresses without compromising the client privacy. Specifically,
+addresses are encrypted with pre-shared key (PSK) cipher suites, and encoded as
+hostnames with the ".encrypted" pseudo-top-level-domain (pseudo-TLD).
 
 WebRTC and WebRTC-compatible endpoints {{Overview}} that receive ICE
-candidates with mDNS names will resolve these names to IP addresses and
-perform ICE processing as usual. In the case where the
-endpoint is a web application, the WebRTC implementation will manage this
-resolution internally and will not disclose the actual IP addresses to the
-application.
+candidates with encrypted addresses will authenticate these hostnames in
+ciphertext, decrypt them to IP addresses, and perform ICE processing as usual.
+In the case where the endpoint is a web application, the WebRTC implementation
+will manage this process internally and will not disclose the IP addresses in
+plaintext to the application.
 
 Terminology
 ===========
