@@ -1,5 +1,5 @@
 ---
-title: Encrypting ICE Candidates to improve privacy and connectivity
+title: Encrypting ICE candidates to improve privacy and connectivity
 docname: draft-ietf-mmusic-encrypted-ice-candidates-latest
 abbrev: encrypted-ice-candidates
 category: info
@@ -52,7 +52,7 @@ informative:
 --- abstract
 
 WebRTC applications collect ICE candidates as part of the process of
-creating peer-to-peer connections.  To maximize the probability of a
+creating peer-to-peer connections. To maximize the probability of a
 direct peer-to-peer connection, client private IP addresses can be
 included in this candidate collection, but this has privacy implications.
 This document describes a way to share local IP addresses with local peers 
