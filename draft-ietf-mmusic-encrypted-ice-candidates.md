@@ -141,37 +141,42 @@ described below.
    whether an address is safe to expose. If so, expose the candidate and abort
    this process.
 
-2. Let *address* be the IP address of the candidate, and embed it as an IPv6
-   address if it is an IPv4 address using the "Well-Known Prefix" as described
-   in {{RFC6052}}. Let *ciphersuite* be the pre-determined cipher suite and its
-   initialization parameter, and *key* the PSK. Let
-   *EncryptAndAuthenticate(plaintext, ciphersuite, key)* be an operation using
-   the given cipher suite to encrypt a given plaintext with authentication, and
-   returns concatenated ciphertext and message authentication code (MAC).
-   Compute *encrypted_address* as the output of
-   EncryptAndAuthenticate(address, algorithm, key).
+2. Generate the encrypted address.
+   1. Let *address* be the IP address of the candidate, and embed it as an IPv6
+      address if it is an IPv4 address, using the "Well-Known Prefix" as
+      described in {{RFC6052}}.
+   2. Let *ciphersuite* be the pre-determined cipher suite and its
+      initialization parameter, and *key* the PSK.
+   3. Let *EncryptAndAuthenticate(plaintext, ciphersuite, key)* be an operation
+      that uses the given cipher suite to encrypt a given plaintext with
+      authentication, and returns concatenated ciphertext and message
+      authentication code (MAC).
+   4. Compute *encrypted_address* as the output of
+      *EncryptAndAuthenticate(address, algorithm, key)*.
 
 3. Generate a peudo-FQDN as follows.
    1. Encode *encrypted_address* to a hex string, and split the hex string
-      to substrings, each of 32 characters.
-   2. Form a string by joining substrings above sequentially with the delimiter
-      ".", denoted by *encoded_encrytped_address*.
-   3. Generate the pseudo-FQDN *encoded_encrypted_address.encrypted* with
-      the pseudo-TLD *.encrypted*.
-4. Replace the IP address of the ICE candidate with the pseudo-FQDN, and provide
-   the candidate to the application.
+      to substrings after every 32 characters.
+   2. Form a string by joining the substrings above sequentially with the
+      delimiter ".". Denote the formed string by *encoded_encrytped_address*.
+   3. Generate the pseudo-FQDN "*encoded_encrypted_address.encrypted*" with
+      the pseudo-TLD "*.encrypted*".
+
+4. Replace the IP address of the ICE candidate with the pseudo-FQDN from step 3,
+   and provide the candidate to the application.
 
 ### Example
 
-The candidate attribute in the SDP messages to exchange the encrypted candidate
-following the above procedure can be given by
+The candidate attribute in an SDP message to exchange the encrypted candidate
+can be given by
 
   a=candidate:1 1 udp 2122262783
     8c9bd03bb7a5a76a5803eebc688f0388.fa991acbdf116f6b72fd3a781174cd58.encrypted
     56622 typ host
 
-assuming the GCM mode is used, when the 256-bit *encrypted_address* can be encoded
-to 64 hex characters, consisting of 128-bit ciphertext and 128-bit MAC.
+following the above procedure. This example assumes the use of the GCM mode, in
+which case the 256-bit *encrypted_address* consists of 128-bit ciphertext and
+128-bit MAC, and can be encoded to 64 hex characters as two labels.
 
 ICE Candidate Processing {#processing}
 -------------------------------------
@@ -180,7 +185,7 @@ This section outlines how received ICE candidates with mDNS names are
 processed by ICE agents, and is relevant to all endpoints.
 
 For any remote ICE candidate received by the ICE agent, the following procedure
-is used:
+is used.
 
 1. If the connection-address field value of the ICE candidate does not end with
    ".encrypted", then process the candidate as defined in {{RFC8445}} or
@@ -190,30 +195,29 @@ is used:
    proceed to step 5.
 
 3. Decrypt the address as follows.
-   1.  Let *AuthenticateAndDecrypt(ciphertext_and_mac, ciphersuite, key)* be an
+   1. Let *AuthenticateAndDecrypt(ciphertext_and_mac, ciphersuite, key)* be an
       operation using the given cipher suite to authenticate and decrypt a given
-      ciphertext with MAC, and returns the decrypted value upon success, or an
-      fail-to-decrypt (FTD) error otherwise.
+      ciphertext with MAC, and returns the decrypted value, or an
+      fail-to-decrypt (FTD) error.
    2. Let *encoded_encrypted_address* be the value of the connection-address
       field after removing the trailing *.encrypted*, and let *encrypted_address*
       be the string after removing all "." in *encoded_encrypted_address*.
-   3. Upon success, let *decrypted_address* be given by
-      *AuthenticateAndDecrypte(encrypted_address)*. If *decrypted_address* does
-      not represent a valid IPv6 address or an embedded IPv4 address, proceed to
-      step 5.
+   3. Let *decrypted_address* be given by
+      *AuthenticateAndDecrypt(encrypted_address)*. If *decrypted_address* does
+      not represent a valid IPv6 address or an embedded IPv4 address, or an FTD
+      error is raised, proceed to step 5.
    4. Convert *decrypted_address* to an IPv4 address if it is embedded.
 
 4. Replace the connection-address field of the ICE candidate with
    *decrypted_address*, skip the rest steps and continue processing of the
    candidate as described in {{RFC8445}}.
 
-5. When there is no suitable PSK cipher suite to process an encrypted candidate
-   or an FTD error is raised in step 3, discard the candidate, or proceed to
-   step 6 if the ICE agent implements {{MdnsCandidate}}.
+5. Discard the candidate, or proceed to step 6 if the ICE agent implements
+   {{MdnsCandidate}}.
 
-6. Let *encoded_encrypted_address* be the same value defined in step 3, and
-   construct an mDNS name given by *encoded_encrypted_address.local*, and
-   proceed with step 2 in Section 3.2.1 in {{MdnsCandidate}}.
+6. Let *encoded_encrypted_address* be the same value as defined in step 3.
+   Construct an mDNS name given by "*encoded_encrypted_address.local*", and
+   proceed to step 2 in Section 3.2.1 in {{MdnsCandidate}}.
 
 ICE agents can implement this procedure in any way as long as it produces
 equivalent results.
@@ -225,8 +229,9 @@ mDNS Message Flooding via Fallback Resolution
 --------------------------------------------
 
 Encrypted candidates can be spoofed and signaled to an ICE agent to trigger the
-fallback mDNS resolution as in step 6 in {{processing}}. Note however that the
-implementation of {{MdnsCandidate}} is required to have a proper rate
+fallback mDNS resolution as described in step 6 in {{processing}}. This can
+potentially generate excessive traffic in the subnet. Note however that
+implementations of {{MdnsCandidate}} are required to have a proper rate
 limiting scheme of mDNS messages.
 
 IANA Considerations
