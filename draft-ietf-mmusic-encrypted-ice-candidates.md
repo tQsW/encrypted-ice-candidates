@@ -30,7 +30,8 @@ author:
     email: qingsi@google.com
 
 normative:
-  RFC6052
+  RFC2119:
+  RFC6052:
   RFC8445:
 informative:
   MdnsCandidate:
@@ -142,7 +143,7 @@ described below.
 
 2. Let *address* be the IP address of the candidate, and embed it as an IPv6
    address if it is an IPv4 address using the "Well-Known Prefix" as described
-   in {{RFC6095}}. Let *ciphersuite* be the pre-determined cipher suite and its
+   in {{RFC6052}}. Let *ciphersuite* be the pre-determined cipher suite and its
    initialization parameter, and *key* the PSK. Let
    *EncryptAndAuthenticate(plaintext, ciphersuite, key)* be an operation using
    the given cipher suite to encrypt a given plaintext with authentication, and
