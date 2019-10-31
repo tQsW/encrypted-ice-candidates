@@ -93,7 +93,7 @@ This document proposes a complementary solution for managed networks to share
 local IP addresses over the signaling channel without compromising client
 privacy. Specifically,
 addresses are encrypted with pre-shared key (PSK) cipher suites, and encoded as
-hostnames with the ".encrypted" pseudo-top-level-domain (pseudo-TLD).
+hostnames with the ".encrypted" pseudo-top-level domain (pseudo-TLD).
 
 WebRTC and WebRTC-compatible endpoints {{Overview}} that receive ICE
 candidates with encrypted addresses will authenticate these hostnames in
@@ -168,7 +168,7 @@ described below.
       authentication, and returns concatenated ciphertext and message
       authentication code (MAC).
    4. Compute *encrypted_address* as the output of
-      *EncryptAndAuthenticate(address, algorithm, key)*.
+      *EncryptAndAuthenticate(address, ciphersuite, key)*.
 
 3. Generate a pseudo-FQDN as follows.
    1. Encode *encrypted_address* to a hex string, and split the hex string
@@ -216,7 +216,7 @@ is used.
       ciphertext with MAC, and returns the decrypted value, or an
       fail-to-decrypt (FTD) error.
    2. Let *encoded_encrypted_address* be the value of the connection-address
-      field after removing the trailing *.encrypted*, and let *encrypted_address*
+      field after removing the trailing "*.encrypted*", and let *encrypted_address*
       be the string after removing all "." in *encoded_encrypted_address*.
    3. Let *decrypted_address* be given by
       *AuthenticateAndDecrypt(encrypted_address)*. If *decrypted_address* does
