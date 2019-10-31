@@ -32,8 +32,16 @@ author:
 normative:
   RFC2119:
   RFC6052:
+  RFC6762:
   RFC8445:
 informative:
+  AES:
+    title: Specification for the Advanced Encryption Standard (AES)
+    author:
+      organization: National Institute of Standards and Technology
+    seriesinfo:
+      FIPS: 197
+    date: 2001-11-26
   MdnsCandidate:
     target: https://tools.ietf.org/html/draft-ietf-rtcweb-mdns-ice-candidates
     title: Using Multicast DNS to protect privacy when exposing ICE candidates
@@ -73,9 +81,13 @@ addresses with other clients without exposing client private IP to applications.
 Given the fact that the application may control the signaling servers,
 STUN/TURN servers, and even the remote peer implementation, the locality of the
 out-of-band mDNS signaling can be considered the sole source of trust between
-peers to share local IPs. However, link-local mDNS messages often
-fail to traverse subnets, and this can lead to failure of mDNS name resolution,
-which hinders direct peer-to-peer connections between clients.
+peers to share local IPs. However, mDNS messages are by default
+scoped to local links {{RFC6762}}, and may not be enabled to traverse subnets
+in certain networking environments. These environments may experience
+frequent failures in mDNS name resolution and significant connectivity
+challenges as a result. On the other hand, endpoints in these environments are
+typically managed, in such a way that information can be securely pushed and
+shared, including a pre-shared key and its associated cipher suite.
 
 This document proposes a complementary solution for managed networks to share
 local IP addresses over the signaling channel without compromising client
@@ -106,14 +118,16 @@ Pre-Shared Key Cipher Suite {#ciphersuite}
 ------------------------------------------
 
 ICE agents that implement this proposal pre-share keys for cipher suites
-based on symmetric-key algorithms. The exact mechanism of sharing such information
+based on symmetric-key algorithms. The mechanism of sharing such information
 is outside the scope of this document, but viable mechanisms exist in browsers
-today. The implementation MUST support the
-Advanced Encryption Standard (AES) algorithm and its operation in the CTR, CBC
-or GCM mode with message authentication, and SHOULD use the GCM mode whenever it
-is supported. The implementation MUST pre-determine a single mode to use as part of
-the mechanism to share the information about the cipher suite. When using the
-CTR or CBC mode, HMAC with SHA-256 MUST be supported. 
+today.
+
+The implementation MUST support the
+Advanced Encryption Standard (AES) {{AES}} algorithm and its operation in the
+CTR, CBC or GCM mode with message authentication, and SHOULD use the GCM mode
+whenever it is supported. The implementation MUST pre-determine a single mode
+to use as part of the mechanism to share the information about the cipher suite.
+When using the CTR or CBC mode, HMAC with SHA-2 MUST be supported.
 
 Since the plaintext to encrypt consists of only a single IPv4 or IPv6 address
 that fits in a single 128-bit block, the initialization parameter for each mode
