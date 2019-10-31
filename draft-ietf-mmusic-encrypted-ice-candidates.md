@@ -78,20 +78,20 @@ Introduction {#problems}
 
 The technique detailed in {{MdnsCandidate}} provides a method to share local IP
 addresses with other clients without exposing client private IP to applications.
-With the possibility of application-controlled signaling servers,
+Given the fact that the application may control the signaling servers,
 STUN/TURN servers, and even the remote peer implementation, the locality of the
-out-of-band mDNS signaling can be considered as the source of trust between
-peers in general to share local IPs. However, mDNS messages are by default
-scoped to local links {{RFC6762}}, and may not be enabled in certain
-networking environments to traverse subnets. These environments may experience
+out-of-band mDNS signaling can be considered the sole source of trust between
+peers to share local IPs. However, mDNS messages are by default
+scoped to local links {{RFC6762}}, and may not be enabled to traverse subnets
+in certain networking environments. These environments may experience
 frequent failures in mDNS name resolution and significant connectivity
-challenges as a result when local IP addresses are not available for direct
-peer-to-peer connections. On the other hand, endpoints in these environments are
+challenges as a result. On the other hand, endpoints in these environments are
 typically managed, in such a way that information can be securely pushed and
 shared, including a pre-shared key and its associated cipher suite.
 
-This document proposes a complementary solution in managed networks to share
-local IP addresses without compromising the client privacy. Specifically,
+This document proposes a complementary solution for managed networks to share
+local IP addresses over the signaling channel without compromising client
+privacy. Specifically,
 addresses are encrypted with pre-shared key (PSK) cipher suites, and encoded as
 hostnames with the ".encrypted" pseudo-top-level-domain (pseudo-TLD).
 
@@ -119,7 +119,10 @@ Pre-Shared Key Cipher Suite {#ciphersuite}
 
 ICE agents that implement this proposal pre-share keys for cipher suites
 based on symmetric-key algorithms. The mechanism of sharing such information
-is outside the scope of this document. The implementation MUST support the
+is outside the scope of this document, but viable mechanisms exist in browsers
+today.
+
+The implementation MUST support the
 Advanced Encryption Standard (AES) {{AES}} algorithm and its operation in the
 CTR, CBC or GCM mode with message authentication, and SHOULD use the GCM mode
 whenever it is supported. The implementation MUST pre-determine a single mode
@@ -167,7 +170,7 @@ described below.
    4. Compute *encrypted_address* as the output of
       *EncryptAndAuthenticate(address, algorithm, key)*.
 
-3. Generate a peudo-FQDN as follows.
+3. Generate a pseudo-FQDN as follows.
    1. Encode *encrypted_address* to a hex string, and split the hex string
       to substrings after every 32 characters.
    2. Form a string by joining the substrings above sequentially with the
