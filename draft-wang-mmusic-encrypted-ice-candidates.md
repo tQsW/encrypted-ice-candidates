@@ -42,6 +42,14 @@ informative:
     seriesinfo:
       FIPS: 197
     date: 2001-11-26
+  JSEP:
+    target: https://tools.ietf.org/html/draft-ietf-rtcweb-jsep
+    title: JavaScript Session Establishment Protocol
+    author:
+      ins: J. Uberti
+      ins: C. Jennings
+      ins: E. Rescorla, Ed.
+    date: 2019-2-27
   MdnsCandidate:
     target: https://tools.ietf.org/html/draft-ietf-rtcweb-mdns-ice-candidates
     title: Using Multicast DNS to protect privacy when exposing ICE candidates
@@ -242,13 +250,24 @@ Security Considerations {#security}
 =======================
 
 mDNS Message Flooding via Fallback Resolution
---------------------------------------------
+---------------------------------------------
 
 Encrypted candidates can be spoofed and signaled to an ICE agent to trigger the
 fallback mDNS resolution as described in step 6 in {{processing}}. This can
 potentially generate excessive traffic in the subnet. Note however that
 implementations of {{MdnsCandidate}} are required to have a proper rate
 limiting scheme of mDNS messages.
+
+Mutable ICE Password in Non-compliant JSEP Implementations
+--------------------------------------------------------
+
+Using the ICE password as the initialization parameter relies on its
+immutability between generation when creating the session description and
+consumption when gathering and encrypting candidates. {{JSEP}} prohibits the
+change of the session description returned from createOffer or createAnswer
+before being passed to setLocalDescription. A non-compliant JSEP implementation
+that allows such an interim change would enable a malicious application to
+choose the initialization parameter so as to compromise the underlying cipher.
 
 IANA Considerations
 ===================
