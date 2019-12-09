@@ -1,6 +1,6 @@
 ---
 title: Encrypting ICE candidates to improve privacy and connectivity
-docname: draft-ietf-mmusic-encrypted-ice-candidates-latest
+docname: draft-wang-mmusic-encrypted-ice-candidates-latest
 abbrev: encrypted-ice-candidates
 category: info
 
@@ -80,7 +80,7 @@ for an encrypted address, the connection-address field is set to 0.0.0.0, and
 two extension fields are added to convey informaton related to the encrypted
 address. The "ciphertext" field provides the ciphertext of an address and the
 "cryptoparams" field signals identifiers that a peer can use to discover the PSK
-and cipher suite associated with the ciphertext.  Addresses that are shared as
+and cipher suite associated with the ciphertext. Addresses that are shared as
 above can be decrypted and used normally in ICE processing by peers that support
 the above mechanism.
 
@@ -190,34 +190,34 @@ described below.
    2. Encode *encrypted_address* from step 2 to a base64 string.
    3. Append a ciphertext field to the candidate attribute with its value given
       by the encoded *encrypted_address*.
-   4. Append zero or more crypto parameter fields with values that is applicable
-      to the peer to identify the PSK and cipher suite used to generate the
-      ciphertext.
+   4. Append zero or more crypto parameter fields with values that are
+      applicable to the peer to identify the PSK and cipher suite used to
+      generate the ciphertext.
 
 ### Grammar and Example
 
 This document defines two extension fields for the candidate attribute, namely
 the ciphertext and the crypto parameters. Let ciphertext-ext and
-cryptoparams-ext be two cand-extension's as defined in {{ICESDP}}.
+cryptoparams-ext be two cand-extensions as defined in {{ICESDP}}.
 
-ciphertext-ext  = ciphertext SP <ciphertext-base64>
-cryptoparam-ext = cryptoparams SP <crypto-params>
-crypto-params   = <param-name> SP 1\*alpha-numeric SP <param-name> SP 1\*alpha-numeric ...
+  ciphertext-ext  = ciphertext SP \<ciphertext-base64\>  
+  cryptoparam-ext = cryptoparams SP \<crypto-params\>  
+  crypto-params   = \<param-name\> SP 1\*alpha-numeric SP \<param-name\> SP 1\*alpha-numeric ...
 
-<ciphertext-base64-val>: is the ciphertext as a base64-encoded string.
+\<ciphertext-base64-val\>: is the ciphertext as a base64-encoded string.
 
-<param-name>: is the name of a crypto parameter. In this document, we
+\<param-name\>: is the name of a crypto parameter. In this document, we
 define two parameters, namely "keyid" and "csid", to convery identifiers to
 discover the PSK and cipher suite that generate the ciphertext.
 
 The cryptoparams field MUST NOT be used in the absence of the ciphertext field.
 
-Following the procedure in Section {{#gathering}}, the candidate attribute in an
-SDP message to exchange the encrypted candidate can be given by
+Following the procedure in Section {{gathering}}, the candidate attribute in an
+SDP message to exchange an encrypted candidate can be given by
 
   a=candidate:1 1 udp 2122262783 0.0.0.0 56622 typ host
-  ciphertext jJvQO7elp2pYA+68aI8DiPqZGsvfEW9rcv06eBF0zVg=
-  cryptoparams keyid icepsk0 csid aes-gcm
+    ciphertext jJvQO7elp2pYA+68aI8DiPqZGsvfEW9rcv06eBF0zVg=
+    cryptoparams keyid icepsk0 csid aes-gcm
 
 This example assumes the use of the GCM mode, in
 which case the 256-bit *encrypted_address* consists of 128-bit ciphertext and
