@@ -1,6 +1,6 @@
 ---
 title: Encrypting ICE candidates to improve privacy and connectivity
-docname: draft-ietf-mmusic-encrypted-ice-candidates-latest
+docname: draft-wang-mmusic-encrypted-ice-candidates-latest
 abbrev: encrypted-ice-candidates
 category: info
 
@@ -57,19 +57,32 @@ informative:
     author:
       ins: H. Alvestrand
     date: 2017-11-12
+  ICESDP:
+    target: https://tools.ietf.org/html/draft-ietf-mmusic-ice-sip-sdp
+    title: Session Description Protocol (SDP) Offer/Answer procedures for
+           Interactive Connectivity Establishment (ICE)
+    author:
+      ins: M. Petit-Huguenin
+      ins: S. Nandakumar
+      ins: A. Keranen
+    date: 2019-08-13
 
 --- abstract
 
-WebRTC applications collect ICE candidates as part of the process of
-creating peer-to-peer connections. To maximize the probability of a
-direct peer-to-peer connection, client private IP addresses can be
-included in this candidate collection, but this has privacy implications.
-This document describes a way to share local IP addresses with local peers 
-without compromising client privacy. During the ICE process, local IP
-addresses are encrypted and authenticated using a pre-shared key and 
-cipher suite before being put into ICE candidates as hostnames with an
-".encrypted" pseudo-top-level domain. Other peers who also have the PSK
-are able to decrypt these addresses and use them normally in ICE processing.
+WebRTC applications collect ICE candidates as part of the process of creating
+peer-to-peer connections. To maximize the probability of a direct peer-to-peer
+connection, client private IP addresses can be included in this candidate
+collection, but this has privacy implications. This document describes a way to
+share local IP addresses with local peers without compromising client privacy.
+During the ICE process, local IP addresses are encrypted and authenticated using
+a pre-shared key (PSK) and cipher suite. When encoding the candidate attribute
+for an encrypted address, the connection-address field is set to 0.0.0.0, and
+two extension fields are added to convey informaton related to the encrypted
+address. The "ciphertext" field provides the ciphertext of an address and the
+"cryptoparams" field signals identifiers that a peer can use to discover the PSK
+and cipher suite associated with the ciphertext. Addresses that are shared as
+above can be decrypted and used normally in ICE processing by peers that support
+the above mechanism.
 
 --- middle
 
@@ -91,9 +104,10 @@ shared, including a pre-shared key and its associated cipher suite.
 
 This document proposes a complementary solution for managed networks to share
 local IP addresses over the signaling channel without compromising client
-privacy. Specifically,
-addresses are encrypted with pre-shared key (PSK) cipher suites, and encoded as
-hostnames with the ".encrypted" pseudo-top-level domain (pseudo-TLD).
+privacy. Specifically, addresses are encrypted with pre-shared key (PSK) cipher
+suites, and encoded with two extension fields to signal the ciphertext and its
+associated PSK and cipher suite, with the connection-address field set to
+0.0.0.0.
 
 WebRTC and WebRTC-compatible endpoints {{Overview}} that receive ICE
 candidates with encrypted addresses will authenticate these hostnames in
@@ -170,29 +184,48 @@ described below.
    4. Compute *encrypted_address* as the output of
       *EncryptAndAuthenticate(address, ciphersuite, key)*.
 
-3. Generate a pseudo-FQDN as follows.
-   1. Encode *encrypted_address* to a hex string, and split the hex string
-      to substrings after every 32 characters.
-   2. Form a string by joining the substrings above sequentially with the
-      delimiter ".". Denote the formed string by *encoded_encrytped_address*.
-   3. Generate the pseudo-FQDN "*encoded_encrypted_address.encrypted*" with
-      the pseudo-TLD "*.encrypted*".
+3. Generate the candidate attribute as defined in {{ICESDP}}, followed by the
+   procedure below before providing it to the application.
+   1. Reset the connection-address field to 0.0.0.0.
+   2. Encode *encrypted_address* from step 2 to a base64 string.
+   3. Append a ciphertext field to the candidate attribute with its value given
+      by the encoded *encrypted_address*.
+   4. Append zero or more crypto parameter fields with values that are
+      applicable to the peer to identify the PSK and cipher suite used to
+      generate the ciphertext.
 
-4. Replace the IP address of the ICE candidate with the pseudo-FQDN from step 3,
-   and provide the candidate to the application.
+### Grammar and Example
 
-### Example
+This document defines two extension fields for the candidate attribute, namely
+the ciphertext and the crypto parameters. Let ciphertext-ext and
+cryptoparams-ext be two cand-extensions as defined in {{ICESDP}}.
 
-The candidate attribute in an SDP message to exchange the encrypted candidate
-can be given by
+  ciphertext-ext  = ciphertext SP \<ciphertext-base64\>  
+  cryptoparam-ext = cryptoparams SP \<crypto-params\>  
+  crypto-params   = \<param-name\> SP 1\*alpha-numeric SP \<param-name\> SP 1\*alpha-numeric ...
 
-  a=candidate:1 1 udp 2122262783
-    8c9bd03bb7a5a76a5803eebc688f0388.fa991acbdf116f6b72fd3a781174cd58.encrypted
-    56622 typ host
+\<ciphertext-base64-val\>: is the ciphertext as a base64-encoded string.
 
-following the above procedure. This example assumes the use of the GCM mode, in
+\<param-name\>: is the name of a crypto parameter. In this document, we
+define two parameters, namely "keyid" and "csid", to convery identifiers to
+discover the PSK and cipher suite that generate the ciphertext.
+
+The cryptoparams field MUST NOT be used in the absence of the ciphertext field.
+
+Following the procedure in Section {{gathering}}, the candidate attribute in an
+SDP message to exchange an encrypted candidate can be given by
+
+  a=candidate:1 1 udp 2122262783 0.0.0.0 56622 typ host
+    ciphertext jJvQO7elp2pYA+68aI8DiPqZGsvfEW9rcv06eBF0zVg=
+    cryptoparams keyid icepsk0 csid aes-gcm
+
+This example assumes the use of the GCM mode, in
 which case the 256-bit *encrypted_address* consists of 128-bit ciphertext and
-128-bit MAC, and can be encoded to 64 hex characters as two labels.
+128-bit MAC, and can be encoded to 44 base64 characters.
+
+### Implementation Guideline
+
+TODO
 
 ICE Candidate Processing {#processing}
 -------------------------------------
@@ -203,21 +236,20 @@ processed by ICE agents, and is relevant to all endpoints.
 For any remote ICE candidate received by the ICE agent, the following procedure
 is used.
 
-1. If the connection-address field value of the ICE candidate does not end with
-   ".encrypted", then process the candidate as defined in {{RFC8445}} or
-   {{MdnsCandidate}}.
+1. If the connection-address field of the ICE candidate is not given by 0.0.0.0
+   or there is no ciphertext field in the candidate, then process the candidate
+   as defined in {{RFC8445}} or {{MdnsCandidate}}.
 
-2. If the ICE agent has no PSK cipher suite for encrypted candidates,
-   proceed to step 5.
+2. If the ICE agent has no default PSK cipher suite for encrypted candidates if
+   there is no cipherparams field, or if its value does not refer to a PSK and
+   cipher suite, proceed to step 5.
 
 3. Decrypt the address as follows.
    1. Let *AuthenticateAndDecrypt(ciphertext_and_mac, ciphersuite, key)* be an
       operation using the given cipher suite to authenticate and decrypt a given
       ciphertext with MAC, and returns the decrypted value, or an
       fail-to-decrypt (FTD) error.
-   2. Let *encoded_encrypted_address* be the value of the connection-address
-      field after removing the trailing "*.encrypted*", and let *encrypted_address*
-      be the string after removing all "." in *encoded_encrypted_address*.
+   2. Let *encrypted_address* be the value of the ciphertext field.
    3. Let *decrypted_address* be given by
       *AuthenticateAndDecrypt(encrypted_address)*. If *decrypted_address* does
       not represent a valid IPv6 address or an embedded IPv4 address, or an FTD
@@ -231,9 +263,9 @@ is used.
 5. Discard the candidate, or proceed to step 6 if the ICE agent implements
    {{MdnsCandidate}}.
 
-6. Let *encoded_encrypted_address* be the same value as defined in step 3.
-   Construct an mDNS name given by "*encoded_encrypted_address.local*", and
-   proceed to step 2 in Section 3.2.1 in {{MdnsCandidate}}.
+6. Let *encrypted_address* be the same value as defined in step 3. Construct an
+   mDNS name given by "*encrypted_address.local*", and proceed to step 2 in
+   Section 3.2.1 in {{MdnsCandidate}}.
 
 ICE agents can implement this procedure in any way as long as it produces
 equivalent results.
