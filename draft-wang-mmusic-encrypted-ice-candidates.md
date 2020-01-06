@@ -205,7 +205,7 @@ which case the 256-bit *encrypted_address* consists of 128-bit ciphertext and
 ICE Candidate Processing {#processing}
 -------------------------------------
 
-This section outlines how received ICE candidates with mDNS names are
+This section outlines how received ICE candidates with encrypted addresses are
 processed by ICE agents, and is relevant to all endpoints.
 
 For any remote ICE candidate received by the ICE agent, the following procedure
