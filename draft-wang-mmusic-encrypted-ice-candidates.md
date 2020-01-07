@@ -1,6 +1,6 @@
 ---
 title: Encrypting ICE candidates to improve privacy and connectivity
-docname: draft-ietf-mmusic-encrypted-ice-candidates-latest
+docname: draft-wang-mmusic-encrypted-ice-candidates-latest
 abbrev: encrypted-ice-candidates
 category: info
 
@@ -130,24 +130,25 @@ based on symmetric-key algorithms. The mechanism of sharing such information
 is outside the scope of this document, but viable mechanisms exist in browsers
 today.
 
-The implementation MUST support the
-Advanced Encryption Standard (AES) {{AES}} algorithm and its operation in the
-CTR, CBC or GCM mode with message authentication, and SHOULD use the GCM mode
-whenever it is supported. The implementation MUST pre-determine a single mode
-to use as part of the mechanism to share the information about the cipher suite.
-When using the CTR or CBC mode, HMAC with SHA-2 MUST be supported.
+The implementation MUST support the Advanced Encryption Standard (AES) {{AES}}
+algorithm and its operation in the CTR, CBC or GCM mode with message
+authentication, and SHOULD use the GCM mode whenever it is supported. The
+implementation MUST pre-determine a single mode to use as part of the mechanism
+to share the information about the cipher suite. When using the CTR or CBC
+mode, HMAC with SHA-2 MUST be supported.
 
 Since the plaintext to encrypt consists of only a single IPv4 or IPv6 address
 that fits in a single 128-bit block, the initialization parameter for each mode
 can be a cryptographically random number. In particular, this parameter is given
 by a 16-byte initial counter block value for CTR, or a 16-byte or 12-byte
-initialization vector for CBC or GCM, respectively.
+initialization vector for CBC or GCM, respectively. In the rest of this
+document, the initialization paramter is called the initialization vector (IV)
+regardless of the operation mode.
 
 Note the ICE password associated with an ICE agent has at least 128-bit
 randomness as defined by {{RFC8445}}. To reduce the overhead in the candidate
-encoding that will be detailed in the next section, the initialization parameter
-MUST be chosen as the first 16 bytes or 12 bytes in the network order for the
-mode in use.
+encoding that will be detailed in the next section, the IV MUST be chosen as the
+first 16 bytes or 12 bytes in the network order for the mode in use.
 
 ICE Candidate Gathering {#gathering}
 ------------------------------------
@@ -170,7 +171,7 @@ described below.
       address if it is an IPv4 address, using the "Well-Known Prefix" as
       described in {{RFC6052}}.
    2. Let *ciphersuite* be the pre-determined cipher suite and its
-      initialization parameter, and *key* the PSK.
+      IV, and *key* the PSK.
    3. Let *EncryptAndAuthenticate(plaintext, ciphersuite, key)* be an operation
       that uses the given cipher suite to encrypt a given plaintext with
       authentication, and returns concatenated ciphertext and message
@@ -261,13 +262,19 @@ limiting scheme of mDNS messages.
 Mutable ICE Password in Non-compliant JSEP Implementations
 --------------------------------------------------------
 
-Using the ICE password as the initialization parameter relies on its
-immutability between generation when creating the session description and
-consumption when gathering and encrypting candidates. {{JSEP}} prohibits the
-change of the session description returned from createOffer or createAnswer
-before being passed to setLocalDescription. A non-compliant JSEP implementation
-that allows such an interim change would enable a malicious application to
-choose the initialization parameter so as to compromise the underlying cipher.
+Repeated IVs through different encryption sessions reduce the cipher operation
+to the vulnerable electronic codebook mode. When encrypting ICE candidates, the
+ICE password is used as the IV in the proposed scheme. As a result, its security
+relies on the immutability of the ICE password between its generation when
+creating the session description, and consumption when gathering and encrypting
+candidates. Otherwise, an attacker can modify the created Offer or Answer to
+apply a chosen ICE password, though it was originally created with sufficient
+entropy (e.g. 128-bit). Note that the immutability of ICE passwords is in fact
+required in JSEP runtimes, and {{JSEP}} prohibits the change of the session
+description returned from createOffer or createAnswer before being passed to
+setLocalDescription. A non-compliant JSEP implementation that allows such an
+interim change would enable a malicious application to choose the IV so as to
+compromise the underlying cipher as discussed above.
 
 IANA Considerations
 ===================
