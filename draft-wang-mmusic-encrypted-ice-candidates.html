@@ -292,6 +292,7 @@ ul.toc li {
 <link href="#rfc.section.3.3" rel="Chapter" title="3.3 ICE Candidate Processing"/>
 <link href="#rfc.section.4" rel="Chapter" title="4 Security Considerations"/>
 <link href="#rfc.section.4.1" rel="Chapter" title="4.1 mDNS Message Flooding via Fallback Resolution"/>
+<link href="#rfc.section.4.2" rel="Chapter" title="4.2 Mutable ICE Password in Non-compliant JSEP Implementations"/>
 <link href="#rfc.section.5" rel="Chapter" title="5 IANA Considerations"/>
 <link href="#rfc.references" rel="Chapter" title="6 References"/>
 <link href="#rfc.references.1" rel="Chapter" title="6.1 Normative References"/>
@@ -375,6 +376,7 @@ ul.toc li {
 </ul><li>3.3.   <a href="#rfc.section.3.3">ICE Candidate Processing</a></li>
 </ul><li>4.   <a href="#rfc.section.4">Security Considerations</a></li>
 <ul><li>4.1.   <a href="#rfc.section.4.1">mDNS Message Flooding via Fallback Resolution</a></li>
+<li>4.2.   <a href="#rfc.section.4.2">Mutable ICE Password in Non-compliant JSEP Implementations</a></li>
 </ul><li>5.   <a href="#rfc.section.5">IANA Considerations</a></li>
 <li>6.   <a href="#rfc.references">References</a></li>
 <ul><li>6.1.   <a href="#rfc.references.1">Normative References</a></li>
@@ -430,6 +432,8 @@ ul.toc li {
 <h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#security" id="security">Security Considerations</a></h1>
 <h1 id="rfc.section.4.1"><a href="#rfc.section.4.1">4.1.</a> <a href="#mdns-message-flooding-via-fallback-resolution" id="mdns-message-flooding-via-fallback-resolution">mDNS Message Flooding via Fallback Resolution</a></h1>
 <p id="rfc.section.4.1.p.1">Encrypted candidates can be spoofed and signaled to an ICE agent to trigger the fallback mDNS resolution as described in step 6 in <a href="#processing">Section 3.3</a>. This can potentially generate excessive traffic in the subnet. Note however that implementations of <a href="#MdnsCandidate">[MdnsCandidate]</a> are required to have a proper rate limiting scheme of mDNS messages.</p>
+<h1 id="rfc.section.4.2"><a href="#rfc.section.4.2">4.2.</a> <a href="#mutable-ice-password-in-non-compliant-jsep-implementations" id="mutable-ice-password-in-non-compliant-jsep-implementations">Mutable ICE Password in Non-compliant JSEP Implementations</a></h1>
+<p id="rfc.section.4.2.p.1">Using the ICE password as the initialization parameter relies on its immutability between generation when creating the session description and consumption when gathering and encrypting candidates. <a href="#JSEP">[JSEP]</a> prohibits the change of the session description returned from createOffer or createAnswer before being passed to setLocalDescription. A non-compliant JSEP implementation that allows such an interim change would enable a malicious application to choose the initialization parameter so as to compromise the underlying cipher.</p>
 <h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
 <p id="rfc.section.5.p.1">This document requires no actions from IANA.</p>
 <h1 id="rfc.references"><a href="#rfc.references">6.</a> References</h1>
@@ -470,6 +474,12 @@ ul.toc li {
         <b id="AES">[AES]</b>
       </td>
       <td class="top"><a>National Institute of Standards and Technology</a>, "<a>Specification for the Advanced Encryption Standard (AES)</a>", FIPS 197, November 2001.</td>
+    </tr>
+    <tr>
+      <td class="reference">
+        <b id="JSEP">[JSEP]</b>
+      </td>
+      <td class="top"><a>Rescorla, Ed, E.</a>, "<a href="https://tools.ietf.org/html/draft-ietf-rtcweb-jsep">JavaScript Session Establishment Protocol</a>", February 2019.</td>
     </tr>
     <tr>
       <td class="reference">
