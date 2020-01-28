@@ -66,6 +66,10 @@ informative:
       ins: S. Nandakumar
       ins: A. Keranen
     date: 2019-08-13
+  WebCrypto:
+    target: https://www.w3.org/TR/WebCryptoAPI/
+    title: Web Cryptography API
+    date: 2017-1-26
 
 --- abstract
 
@@ -134,7 +138,7 @@ Pre-Shared Key Cipher Suite {#ciphersuite}
 ICE agents that implement this proposal pre-share keys for cipher suites
 based on symmetric-key algorithms. The mechanism of sharing such information
 is outside the scope of this document, but viable mechanisms exist in browsers
-today.
+today as noted in Section {{#keymanagement}}
 
 The implementation MUST support the
 Advanced Encryption Standard (AES) {{AES}} algorithm and its operation in the
@@ -223,9 +227,19 @@ This example assumes the use of the GCM mode, in
 which case the 256-bit *encrypted_address* consists of 128-bit ciphertext and
 128-bit MAC, and can be encoded to 44 base64 characters.
 
-### Implementation Guideline
+### Notes on Key Management {#keymanagement}
 
-TODO
+The encrypted candidate scheme relies on secure key management of PSKs. Such
+systems exist in practice to distribute and rotate PSKs, for instance, the
+enterprise policy mechanism in browsers, where a policy containing the list of
+PSKs to use and a rotation schedule can be pushed to managed hosts in a secure
+out-of-band channel. Hosts that support encrypted candidates can identify the
+PSK in use by either trial decryption to traverse the list or an
+identifier-based key discovery mechanism with the information signaled in the
+cryptoparam-ext attribute. Browsers today also support the {{WebCrypto}} API,
+which provides opaque key handles (namely non-extractable CryptoKey objects) to
+applications for cryptographic operations without revealing key materials in the
+plaintext.
 
 ICE Candidate Processing {#processing}
 -------------------------------------
